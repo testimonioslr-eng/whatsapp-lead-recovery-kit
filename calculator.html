@@ -28,6 +28,11 @@
   .disclaim { font-size: .85rem; color: var(--muted); margin-top: 1rem; }
   .share { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); font-size: .95rem; color: var(--muted); }
   .share a { color: var(--accent); }
+  .share-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: .75rem 0 1rem; }
+  .share-actions button { background: var(--accent); color: var(--accent-ink); border: 0; padding: .5rem .9rem; border-radius: 6px; font-size: .95rem; font-weight: 600; cursor: pointer; }
+  .share-actions button:hover { filter: brightness(0.95); }
+  .share-actions button.secondary { background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+  .share-actions .share-status { font-size: .85rem; color: var(--muted); margin-left: .25rem; }
   footer { text-align: center; color: var(--muted); font-size: .85rem; margin-top: 1.5rem; }
 </style>
 </head>
@@ -70,6 +75,11 @@
   </form>
   <section class="card share">
     <h2>2. ¿Te sirvió?</h2>
+    <div class="share-actions" aria-label="Compartir esta calculadora">
+      <button type="button" id="shareBtn" hidden>Compartir esta calculadora</button>
+      <button type="button" id="copyBtn" class="secondary">Copiar enlace</button>
+      <span class="share-status" id="shareStatus" aria-live="polite"></span>
+    </div>
     <p>Si te sirvió, lo más útil que podés hacer es enviárselo a un conocido que tenga un negocio que atienda por WhatsApp y se queje de mensajes perdidos. Eso vale más que cualquier like. No pedimos registro ni correo.</p>
     <p>¿Querés ver el flujo que une anuncio + landing + WhatsApp + medición de tiempo de respuesta en una sola pieza? Probá el <a href="https://www.landingpixel.com/tiktok/" rel="noopener noreferrer" target="_blank">diagnóstico gratuito de LandingPixel</a> (5 preguntas, sin registro).</p>
   </section>
@@ -111,6 +121,52 @@
     document.getElementById(id).addEventListener('input', go);
     document.getElementById(id).addEventListener('change', go);
   });
+
+  // Share button — Web Share API with graceful fallback to copy-link.
+  // Visitor decides voluntarily; we never auto-share or pre-select contacts.
+  (function setupShare() {
+    var shareBtn = document.getElementById('shareBtn');
+    var copyBtn = document.getElementById('copyBtn');
+    var status = document.getElementById('shareStatus');
+    var url = window.location.href;
+    var title = 'Calculadora de oportunidades perdidas — WhatsApp Lead Recovery Kit';
+    var text = 'Calculadora gratuita para estimar cuánto deja de capturar una PyME por demoras en responder WhatsApp. Sin registro, sin email, todo en el navegador.';
+
+    function setStatus(msg) {
+      if (status) { status.textContent = msg; setTimeout(function () { status.textContent = ''; }, 3500); }
+    }
+
+    if (navigator.share && typeof navigator.share === 'function') {
+      shareBtn.hidden = false;
+      shareBtn.addEventListener('click', function () {
+        navigator.share({ title: title, text: text, url: url })
+          .then(function () { setStatus('Compartido. Gracias.'); })
+          .catch(function (err) {
+            if (err && err.name === 'AbortError') { return; }
+            setStatus('No se pudo abrir el menú de compartir; probá Copiar enlace.');
+          });
+      });
+    }
+
+    copyBtn.addEventListener('click', function () {
+      var done = function () { setStatus('Enlace copiado al portapapeles.'); };
+      var fail = function () { setStatus('No se pudo copiar; seleccioná el enlace manualmente.'); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done, fail);
+      } else {
+        try {
+          var ta = document.createElement('textarea');
+          ta.value = url; ta.setAttribute('readonly', '');
+          ta.style.position = 'fixed'; ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          var ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          ok ? done() : fail();
+        } catch (e) { fail(); }
+      }
+    });
+  })();
 })();
 </script>
 </body>

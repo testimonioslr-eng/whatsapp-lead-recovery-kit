@@ -1,0 +1,4 @@
+timestamp,source,first_name,city,product_inquired,outcome,notes
+2026-01-04T10:14:00-03:00,tiktok-ad,Maria,Rosario,landing-prospect,pending,first contact from new video
+2026-01-04T11:02:00-03:00,instagram-post,Carlos,CABA,whatsapp-setup,closed,"closed in 4 days, USD 120"
+2026-01-04T12:45:00-03:00,google-organic,Lucia,Mendoza,landing-prospect,lost,"replied after 36h, no second contact"

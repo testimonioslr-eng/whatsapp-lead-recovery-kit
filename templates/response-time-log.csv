@@ -1,0 +1,4 @@
+timestamp_in,timestamp_first_reply,seconds_to_first_reply,source,lead_id
+2026-01-04T10:14:00-03:00,2026-01-04T10:16:21-03:00,141,tiktok-ad,lead-001
+2026-01-04T11:02:00-03:00,2026-01-04T11:18:55-03:00,1015,instagram-post,lead-002
+2026-01-04T12:45:00-03:00,2026-01-05T00:12:33-03:00,40653,google-organic,lead-003

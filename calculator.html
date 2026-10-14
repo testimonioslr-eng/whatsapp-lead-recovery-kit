@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadora de oportunidades perdidas — WhatsApp Lead Recovery Kit</title>
+<meta name="description" content="Calculadora gratuita para estimar cuánto deja de capturar una PyME por demoras en responder WhatsApp. No envía datos a ningún servidor.">
+<style>
+  :root { --bg: #fafafa; --card: #ffffff; --border: #e6e6e6; --ink: #1a1a1a; --muted: #5b6471; --accent: #0a7c4a; --accent-ink: #ffffff; --warn-bg: #fff8e1; --warn-border: #f1c40f; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: var(--ink); background: var(--bg); margin: 0; padding: 1.5rem 1rem; line-height: 1.5; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  header h1 { font-size: 1.6rem; margin: 0 0 .25rem; }
+  header p { color: var(--muted); margin: 0 0 1.5rem; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; }
+  .card h2 { font-size: 1.15rem; margin: 0 0 1rem; }
+  label { display: block; font-weight: 600; margin-top: 1rem; margin-bottom: .35rem; }
+  label small { font-weight: 400; color: var(--muted); display: block; margin-top: .15rem; }
+  input[type="number"], select { width: 100%; max-width: 320px; padding: .55rem .65rem; font-size: 1rem; border: 1px solid var(--border); border-radius: 6px; background: #fff; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border: 0; padding: .75rem 1.25rem; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 1.25rem; }
+  button.primary:hover { filter: brightness(0.95); }
+  .result { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 8px; padding: 1rem 1.25rem; margin-top: 1.25rem; display: none; }
+  .result h3 { margin: 0 0 .5rem; font-size: 1.05rem; }
+  .big { font-size: 1.6rem; font-weight: 700; color: var(--ink); margin: .25rem 0 .5rem; }
+  table { width: 100%; border-collapse: collapse; margin-top: .5rem; font-size: .95rem; }
+  th, td { text-align: left; padding: .4rem .5rem; border-bottom: 1px solid var(--border); }
+  th { font-weight: 600; color: var(--muted); }
+  .disclaim { font-size: .85rem; color: var(--muted); margin-top: 1rem; }
+  .share { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); font-size: .95rem; color: var(--muted); }
+  .share a { color: var(--accent); }
+  footer { text-align: center; color: var(--muted); font-size: .85rem; margin-top: 1.5rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Calculadora de oportunidades perdidas</h1>
+    <p>Cuánto deja de capturar una PyME por demorarse en responder WhatsApp. Cálculo estimativo basado en los mismos parámetros del kit.</p>
+  </header>
+  <form class="card" id="calc" onsubmit="return false">
+    <h2>1. Tus números</h2>
+    <label for="leads">Consultas nuevas por semana <small>Promedio de las últimas 4 semanas si lo tenés; si no, las del último mes.</small></label>
+    <input type="number" id="leads" min="0" step="1" value="30" inputmode="numeric">
+    <label for="ticket">Ticket promedio (en tu moneda) <small>Lo que paga un cliente cerrado. Si hay mucha dispersión, usá la mediana de las últimas 20 ventas.</small></label>
+    <input type="number" id="ticket" min="0" step="any" value="80" inputmode="decimal">
+    <label for="fastrate">Tasa de cierre si respondés en menos de 5 minutos (%) <small>Si no la medís, 25% es un default conservador para servicios. 20% es aún más conservador.</small></label>
+    <input type="number" id="fastrate" min="0" max="100" step="any" value="25" inputmode="decimal">
+    <label for="speed">Tu tiempo de respuesta actual</label>
+    <select id="speed">
+      <option value="1">Menos de 5 minutos</option>
+      <option value="0.6" selected>Entre 5 minutos y 30 minutos</option>
+      <option value="0.3">Entre 30 minutos y 2 horas</option>
+      <option value="0.1">Entre 2 horas y 24 horas</option>
+      <option value="0.05">Más de 24 horas</option>
+    </select>
+    <button type="button" class="primary" id="run">Calcular</button>
+    <div class="result" id="result" aria-live="polite">
+      <h3>Lo que estás dejando en la mesa (estimación)</h3>
+      <div class="big" id="bigGap">—</div>
+      <table>
+        <thead><tr><th></th><th>Por semana</th><th>Por año</th></tr></thead>
+        <tbody>
+          <tr><td>Potencial (respondiendo rápido)</td><td id="weekFast">—</td><td id="yearFast">—</td></tr>
+          <tr><td>Capturado hoy (a tu velocidad)</td><td id="weekNow">—</td><td id="yearNow">—</td></tr>
+          <tr><td>Diferencia</td><td id="weekGap">—</td><td id="yearGap">—</td></tr>
+        </tbody>
+      </table>
+      <p class="disclaim" id="disclaim">Es una estimación. La captura real depende de muchos otros factores (calidad de la respuesta, canal, horario, competencia). No es un resultado auditado de clientes reales. Reemplaza los números por los tuyos cuando los tengas medidos.</p>
+    </div>
+  </form>
+  <section class="card share">
+    <h2>2. ¿Te sirvió?</h2>
+    <p>Si te sirvió, lo más útil que podés hacer es enviárselo a un conocido que tenga un negocio que atienda por WhatsApp y se queje de mensajes perdidos. Eso vale más que cualquier like. No pedimos registro ni correo.</p>
+    <p>¿Querés ver el flujo que une anuncio + landing + WhatsApp + medición de tiempo de respuesta en una sola pieza? Probá el <a href="https://www.landingpixel.com/tiktok/" rel="noopener noreferrer" target="_blank">diagnóstico gratuito de LandingPixel</a> (5 preguntas, sin registro).</p>
+  </section>
+  <footer>
+    Calculadora parte del <a href="https://testimonioslr-eng.github.io/whatsapp-lead-recovery-kit/">WhatsApp Lead Recovery Kit</a>. MIT. No envía tus números a ningún servidor: todo se calcula en tu navegador.
+  </footer>
+</div>
+<script>
+(function () {
+  function fmt(n) {
+    if (!isFinite(n)) return '—';
+    var abs = Math.abs(n);
+    var rounded = abs >= 100 ? Math.round(n) : Math.round(n * 100) / 100;
+    return rounded.toLocaleString('es-AR');
+  }
+  function go() {
+    var leads = parseFloat(document.getElementById('leads').value) || 0;
+    var ticket = parseFloat(document.getElementById('ticket').value) || 0;
+    var fastPct = parseFloat(document.getElementById('fastrate').value) || 0;
+    var speedFactor = parseFloat(document.getElementById('speed').value) || 0;
+    if (leads < 0 || ticket < 0 || fastPct < 0 || fastPct > 100) return;
+    var fast = leads * (fastPct / 100) * ticket;
+    var nowFactor = speedFactor * (fastPct / 100);
+    var now = leads * nowFactor * ticket;
+    var gapWeek = Math.max(0, fast - now);
+    var gapYear = gapWeek * 52;
+    document.getElementById('weekFast').textContent = fmt(fast);
+    document.getElementById('yearFast').textContent = fmt(fast * 52);
+    document.getElementById('weekNow').textContent = fmt(now);
+    document.getElementById('yearNow').textContent = fmt(now * 52);
+    document.getElementById('weekGap').textContent = fmt(gapWeek);
+    document.getElementById('yearGap').textContent = fmt(gapYear);
+    document.getElementById('bigGap').textContent = '~ ' + fmt(gapYear) + ' / año sin responder a tiempo';
+    document.getElementById('result').style.display = 'block';
+  }
+  document.getElementById('run').addEventListener('click', go);
+  document.getElementById('calc').addEventListener('submit', function (e) { e.preventDefault(); go(); });
+  ['leads','ticket','fastrate','speed'].forEach(function (id) {
+    document.getElementById(id).addEventListener('input', go);
+    document.getElementById(id).addEventListener('change', go);
+  });
+})();
+</script>
+</body>
+</html>
